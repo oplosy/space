@@ -1,0 +1,137 @@
+<div id="app">
+  <canvas id="gl" aria-label="Three-dimensional view of the Solar System"></canvas>
+  <div id="labels" aria-hidden="true"></div>
+
+  <header id="top">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="16" rx="14" ry="5.5" transform="rotate(-18 16 16)" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="16" cy="16" r="4.2" fill="var(--sun)"/><circle cx="28.4" cy="12.1" r="1.9" fill="currentColor"/></svg>
+      <div>
+        <div class="wordmark">Ecliptic</div>
+        <div class="tag">Solar System · live ephemeris</div>
+      </div>
+    </div>
+    <div class="clock">
+      <div id="utc" class="utc">—</div>
+      <div class="clock-sub"><span id="jdLabel">JD —</span><span class="sep">/</span><span id="rateLabel">—</span><span id="limitFlag" class="flag" hidden>integrator-limited</span></div>
+    </div>
+    <nav class="top-actions">
+      <button id="btnBodies" class="chip only-narrow" aria-controls="nav">Bodies</button>
+      <button id="btnEvents" class="chip" aria-haspopup="dialog" aria-controls="events">Events</button>
+      <button id="btnMission" class="chip" aria-haspopup="dialog" aria-controls="mission">Mission</button>
+      <button id="btnHelp" class="chip icon" aria-haspopup="dialog" aria-controls="help" aria-label="Controls and credits">?</button>
+    </nav>
+  </header>
+
+  <button id="btnUI" class="chip icon" aria-pressed="false" aria-label="Hide panels" title="Hide panels (H)">▢</button>
+  <aside id="nav" class="panel" aria-label="Bodies">
+    <div class="panel-h"><span>Bodies</span><span class="hint" id="navHint">distance from Sun</span></div>
+    <ul id="bodyList"></ul>
+  </aside>
+
+  <aside id="dossier" class="panel" aria-live="polite">
+    <button id="dossierToggle" class="dossier-grip only-narrow" aria-label="Expand details"></button>
+    <div class="eyebrow" id="dSub">—</div>
+    <h1 id="dName">—</h1>
+    <p id="dBlurb" class="blurb"></p>
+    <div class="sect">Live</div>
+    <dl id="dLive" class="kv"></dl>
+    <div class="sect" id="dFactsH">Physical</div>
+    <dl id="dFacts" class="kv"></dl>
+    <div id="dActions" class="d-actions" hidden></div>
+  </aside>
+
+  <div id="layers" class="panel slim" role="group" aria-label="Display layers">
+    <button class="toggle" data-layer="orbits" aria-pressed="true">Orbits</button>
+    <button class="toggle" data-layer="labels" aria-pressed="true">Labels</button>
+    <button class="toggle" data-layer="belts" aria-pressed="true">Small bodies</button>
+    <button class="toggle" data-layer="constellations" aria-pressed="false">Constellations</button>
+    <button class="toggle" data-layer="milkyway" aria-pressed="true">Milky Way</button>
+    <label class="scale-ctl" for="scaleRange"><span>Body size</span><input id="scaleRange" type="range" min="0" max="100" value="0" step="1"><output id="scaleOut">true scale</output></label>
+  </div>
+
+  <footer id="transport" class="panel">
+    <button id="tNow" class="tbtn text" title="Jump to the present (N)">Now</button>
+    <div class="tgroup">
+      <button id="tSlower" class="tbtn" aria-label="Slower or reverse (,)"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4 3 10l7 6V4Zm8 0-7 6 7 6V4Z" fill="currentColor"/></svg></button>
+      <button id="tPlay" class="tbtn play" aria-label="Pause (space)"><svg viewBox="0 0 20 20" aria-hidden="true"><path id="tPlayIcon" d="M6 4h3v12H6zM11 4h3v12h-3z" fill="currentColor"/></svg></button>
+      <button id="tFaster" class="tbtn" aria-label="Faster (.)"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 4l7 6-7 6V4Zm8 0 7 6-7 6V4Z" fill="currentColor"/></svg></button>
+    </div>
+    <div class="rate">
+      <div id="rateBig">—</div>
+      <div id="rateScale" class="rate-scale" aria-hidden="true"></div>
+    </div>
+    <form id="tForm" class="date" autocomplete="off">
+      <label for="tDate" class="sr">Jump to date (UTC)</label>
+      <input type="datetime-local" id="tDate" step="60" min="1000-01-01T00:00" max="2999-12-31T23:59">
+      <button type="submit" class="tbtn text">Go</button>
+    </form>
+  </footer>
+
+  <section id="events" class="pop" role="dialog" aria-labelledby="eventsH" hidden>
+    <div class="pop-h"><h2 id="eventsH">Events</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <p class="pop-note">Jump the clock and camera to a moment computed from the ephemeris. Shadows, phases and ring tilt come from the model; nothing is scripted.</p>
+    <ul id="eventList" class="event-list"></ul>
+  </section>
+
+  <section id="mission" class="pop wide" role="dialog" aria-labelledby="missionH" hidden>
+    <div class="pop-h"><h2 id="missionH">Mission planner</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <p class="pop-note">Launch a probe from a circular parking orbit. Its path is integrated under the gravity of the Sun, the planets and the Moon, so what you see is what it flies.</p>
+    <div class="field-row">
+      <label class="field" for="mOrigin"><span>Depart from</span><select id="mOrigin"></select></label>
+      <label class="field" for="mAlt"><span>Parking orbit altitude</span><span class="unit-input"><input id="mAlt" type="number" min="50" step="50" value="300"><i>km</i></span></label>
+    </div>
+    <div class="seg" role="tablist">
+      <button id="mModeTransfer" role="tab" aria-selected="true">Transfer to a planet</button>
+      <button id="mModeFree" role="tab" aria-selected="false">Free burn</button>
+    </div>
+    <div id="mTransfer" class="mode-pane">
+      <div class="field-row">
+        <label class="field" for="mTarget"><span>Target</span><select id="mTarget"></select></label>
+        <div class="field btns"><button id="mPlanNow" class="btn">Plan from now</button><button id="mWindow" class="btn">Next launch window</button></div>
+      </div>
+    </div>
+    <div id="mFree" class="mode-pane" hidden>
+      <label class="slider" for="mPhase"><span>Burn point</span><input id="mPhase" type="range" min="0" max="359" step="1" value="0"><output id="mPhaseOut">0°</output></label>
+    </div>
+    <div class="trims">
+      <label class="slider" for="mPro"><span id="mProLabel">Prograde trim</span><input id="mPro" type="range" min="-0.5" max="0.5" step="0.0005" value="0"><output id="mProOut">0 m/s</output></label>
+      <label class="slider" for="mRad"><span>Radial</span><input id="mRad" type="range" min="-0.5" max="0.5" step="0.0005" value="0"><output id="mRadOut">0 m/s</output></label>
+      <label class="slider" for="mNor"><span>Normal</span><input id="mNor" type="range" min="-0.5" max="0.5" step="0.0005" value="0"><output id="mNorOut">0 m/s</output></label>
+    </div>
+    <dl id="mStats" class="kv stats"></dl>
+    <div class="actions">
+      <span id="mStatus" class="status"></span>
+      <button id="mRefine" class="btn">Refine aim</button>
+      <button id="mLaunch" class="btn primary">Launch</button>
+    </div>
+    <div id="mProbes" class="probe-list"></div>
+  </section>
+
+  <section id="help" class="pop" role="dialog" aria-labelledby="helpH" hidden>
+    <div class="pop-h"><h2 id="helpH">Flying the orrery</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <dl class="keys">
+      <dt>Drag</dt><dd>Orbit the focused body</dd>
+      <dt>Scroll / pinch</dt><dd>Zoom (altitude-aware)</dd>
+      <dt>Click a body or label</dt><dd>Fly to it</dd>
+      <dt>Space</dt><dd>Pause / resume time</dd>
+      <dt>, and .</dt><dd>Slower (then reverse) / faster</dd>
+      <dt>N</dt><dd>Return to the present</dd>
+      <dt>0 – 9</dt><dd>Sun, Mercury … Neptune, Pluto</dd>
+      <dt>O  L  B  C</dt><dd>Orbits, labels, small bodies, constellations</dd>
+      <dt>H</dt><dd>Hide or show all panels</dd>
+      <dt>G  X  A  U</dt><dd>Milky Way, black hole Sgr A*, Andromeda, observable universe</dd>
+    </dl>
+    <h3>What is real here</h3>
+    <p>Planet positions use JPL’s approximate Keplerian elements (Standish), accurate to arc-minutes between 1800 and 2050 and degrading slowly outside. The Moon follows the main terms of Meeus’s lunar theory, precise enough to reproduce eclipses to within minutes. Poles and spin come from the IAU WGCCRE rotation models. Eclipse shadows, ring shadows and atmospheric scattering are computed per pixel from the actual geometry. Sizes and distances are true to scale unless you enlarge bodies.</p>
+    <p>Moons other than Earth’s use mean circular orbits in their planet’s equatorial plane, so their phases are approximate. Small-body belts are statistical populations with real structure: Kirkwood gaps, Hildas, Jupiter’s trojans at L4/L5, and the Kuiper belt.</p>
+    <p>Zoom far enough out and the sky gives way to a model of the Milky Way: a barred spiral with its measured bar angle, arm pitch and the Sun 26,670 light years from the centre. Near Sagittarius A* every pixel is ray-traced through Schwarzschild spacetime, so the shadow, photon ring and lensed disc come from the physics rather than a painted texture.</p>
+    <p>Further out, the Magellanic Clouds, Andromeda and Triangulum sit at their measured distances and orientations. Beyond the Local Group, real galaxy clusters (Virgo, Fornax, Centaurus, Norma, Perseus, Hydra, Coma, Leo, Hercules, Shapley) anchor a statistical cosmic web that runs out to the cosmic microwave background, 46.5 billion light years away and shown in false colour.</p>
+    <p>Thirty nearby and famous stars, from Proxima Centauri to Betelgeuse and VY Canis Majoris, sit at their measured distances with their true sizes and colours. From Earth they replace their catalogue points, so the sky is unchanged until you leave. Two stellar black holes are ray-traced like Sgr A*: dormant Gaia BH1, the nearest known, and Cygnus X-1 with its accretion disc and blue supergiant companion.</p>
+    <p>Voyager 1 and 2 fly their real routes, rebuilt from the actual flyby dates and pinned to their measured positions today; set the clock to 1977 or use the flyby buttons to follow the Grand Tour. The faint shell at about 120 AU is the heliopause they have both crossed. TRAPPIST-1, 40.7 light-years away, has its seven planets on their measured orbits; the three in green orbit in the habitable zone. Their surfaces are illustrations.</p>
+    <h3>Credits</h3>
+    <p>Planet textures by <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener">Solar System Scope</a> (CC BY 4.0), based on NASA mission data. Star catalogue (HYG, to magnitude 7.6) and constellation figures from <a href="https://github.com/ofrohn/d3-celestial" target="_blank" rel="noopener">d3-celestial</a>. Rendering by three.js.</p>
+  </section>
+
+  <div id="toast" role="status" hidden></div>
+  <div id="loader"><div class="loader-orbit" aria-hidden="true"><span></span></div><div id="loaderText">Assembling the Solar System…</div></div>
+</div>
