@@ -8,21 +8,31 @@ Open `index.html` and fly from Earth's city lights to Saturn's rings, out past V
 
 ---
 
-## Demo
+## Quick start — just open the HTML
 
-**Run locally (zero setup):**
-
-1. Download or clone this repo
-2. Open `index.html` directly in a desktop browser (Chrome / Edge / Firefox recommended)
-3. That's it. Three.js loads from jsDelivr CDN; everything else is inlined.
+No build. No server. No install. `index.html` is the whole app (~4.7 MB, self-contained).
 
 ```bash
 git clone https://github.com/oplosy/space.git
 cd space
-# then open index.html in your browser
 ```
 
-For best performance use a desktop with WebGL2 and hardware acceleration enabled.
+Then **double-click `index.html`** — it opens directly in your browser. Done.
+
+> Only external dependency: three.js from jsDelivr CDN (needs internet on first load). Everything else — textures, star catalogue, sky data — is inlined in the file.
+
+**Alternatives** (same file, if double-click is blocked):
+
+```bash
+# Python (built-in)
+python -m http.server 8765
+# → http://127.0.0.1:8765/index.html
+
+# Node
+npx serve .
+```
+
+Use a desktop browser (Chrome / Edge / Firefox) with WebGL2 + hardware acceleration for best performance.
 
 ---
 
