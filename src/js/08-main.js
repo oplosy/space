@@ -490,6 +490,7 @@ function updateRender(jdTT) {
   updateStars(O);
   updateCrafts(O);
   updateExo(O);
+  updateOuter(O);
 }
 
 
@@ -555,7 +556,7 @@ async function init() {
   buildBodyList(); buildTransport(); buildLayers(); buildPopovers(); buildMission(); buildKeys(); bindInput();
   try { await loadTextures(); }
   catch (err) { $('loaderText').textContent = 'Textures failed to load. Reload the page to try again.'; throw err; }
-  buildBodies(); buildOrbits(); buildSky(); buildBelts(); buildComet(); buildGlints(); buildGalaxy(); buildBlackHole(); buildLocalGroup(); buildCosmicWeb(); buildStars(); buildExo(); buildCrafts(); initPreview(); buildLabels();
+  buildBodies(); buildOrbits(); buildSky(); buildBelts(); buildComet(); buildGlints(); buildGalaxy(); buildBlackHole(); buildLocalGroup(); buildCosmicWeb(); buildStars(); buildExo(); buildCrafts(); buildOuter(); initPreview(); buildLabels();
   resize();
   STATE.rateIdx = 9; syncTransport();
   const jdTT = STATE.jd + TT_MINUS_UTC;
@@ -571,6 +572,6 @@ async function init() {
   updateRender(jdTT);
   renderer.compile(scene, camera);
   requestAnimationFrame(t => { lastT = t; frame(t); });
-  window.ECLIPTIC = { CRAFTS, EXO, HELIO, TRAPPIST, craftAt, GALAXY, GALAXIES, WEB, BHS, STARS3D, STARVIEW, DEEP, DEEP_K, stepTo, physAt, predict, launchState, advanceProbes, TT_MINUS_UTC, scene, composer, bloom, renderer, SKY, BELTS, COMET, GLINTS, STATE, CAM, BY_ID, EVENTS, PROBES, MIS, focusOn, setScale, setLayer, setRate, runEvent, openPop, jumpTime, launch, findWindow, refine };
+  window.ECLIPTIC = { OUTER, CRAFTS, EXO, HELIO, TRAPPIST, craftAt, GALAXY, GALAXIES, WEB, BHS, STARS3D, STARVIEW, DEEP, DEEP_K, stepTo, physAt, predict, launchState, advanceProbes, TT_MINUS_UTC, scene, composer, bloom, renderer, SKY, BELTS, COMET, GLINTS, STATE, CAM, BY_ID, EVENTS, PROBES, MIS, focusOn, setScale, setLayer, setRate, runEvent, openPop, jumpTime, launch, findWindow, refine };
 }
 init();

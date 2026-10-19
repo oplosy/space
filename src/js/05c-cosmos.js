@@ -231,7 +231,7 @@ function valueNoise3(seed) {
   };
 }
 function buildCosmicWeb() {
-  const rnd = mulberry(13800), N = 330000;
+  const rnd = mulberry(13800), N = 350000;
   const pos = new Float32Array(N * 3), col = new Float32Array(N * 4), size = new Float32Array(N);
   let n = 0;
   const add = (x, y, z, c, L, s, kind) => { if (n >= N) return; pos.set([x, y, z], n * 3); col.set([c[0] * L, c[1] * L, c[2] * L, kind], n * 4); size[n++] = s; };
@@ -244,12 +244,14 @@ function buildCosmicWeb() {
     [159.18, -27.52, 158, 1.8], [201.99, -31.5, 650, 5], [194.95, 27.98, 321, 3.4], [241.3, 17.7, 500, 2.4], [176.1, 19.8, 330, 2]];
   const v = new V3();
   for (const [ra, dec, d, rich] of named) { const g = toGal(raDecToScene(ra, dec, v)); nodes.push({ p: g.map(c => c * d), rich, n: Math.round(rich * 480) }); }
+  nodes.push(...sloanNodes());
   nodes.push({ p: [0, 0, 0], rich: 0 });                    // the Local Group sits on a filament
   const RA = 1200;
   while (nodes.length < 1500) {
     const r = RA * Math.cbrt(rnd()), u = 2 * rnd() - 1, t = TAU * rnd(), s = Math.sqrt(1 - u * u);
-    if (r < 25) continue;
-    nodes.push({ p: [r * s * Math.cos(t), r * s * Math.sin(t), r * u], rich: Math.exp(gauss(rnd) * 0.8) * 0.5 });
+    const p = [r * s * Math.cos(t), r * s * Math.sin(t), r * u];
+    if (r < 25 || inBootes(...p)) continue;
+    nodes.push({ p, rich: Math.exp(gauss(rnd) * 0.8) * 0.5 });
   }
   // Filaments join each node to its three nearest neighbours
   const edges = new Set(), E = [];
@@ -263,7 +265,7 @@ function buildCosmicWeb() {
     }
     for (const [d, j] of best) { const key = i < j ? i * 4096 + j : j * 4096 + i; if (!edges.has(key)) { edges.add(key); E.push([i, j, Math.sqrt(d)]); } }
   }
-  const put = (x, y, z, c, L, s, kind) => { if (x * x + y * y + z * z > LOCAL * LOCAL) add(x, y, z, c, L, s, kind); };
+  const put = (x, y, z, c, L, s, kind) => { if (x * x + y * y + z * z > LOCAL * LOCAL && !(inBootes(x, y, z) && rnd() > 0.03)) add(x, y, z, c, L, s, kind); };
   const totalLen = E.reduce((s, e) => s + e[2], 0);
   // galaxies along filaments
   for (let i = 0; i < 125000; i++) {
@@ -303,6 +305,7 @@ function buildCosmicWeb() {
     if (Math.pow(d, 4) < rnd()) continue;
     add(x, y, z, WEBC, 0.02, 500 + rnd() * 700, 1);
   }
+  hercPoints(rnd, add, WEBC);
 
   const makePts = (a, b, fade) => {
     const g = new THREE.BufferGeometry();
