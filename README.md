@@ -85,6 +85,10 @@ Zoom out far enough and the star sky gives way to deep space:
 
 ---
 
+### On the way out
+
+- **Oort Cloud** (2,000–100,000 AU, modelled), **Laniakea** with illustrative flow lines into the **Great Attractor**, the **Sloan Great Wall**, the **Boötes Void**, the debated **Hercules–Corona Borealis Great Wall**, quasars **3C 273** and **TON 618**, and **JADES-GS-z14-0** (z = 14.32). Distances beyond ~1 billion ly are comoving.
+
 ## Controls
 
 | Input | Action |
